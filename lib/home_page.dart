@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutterappfirebase/check_list_widget.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -7,12 +9,13 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
 
-  @override
-  void initState() {
-    super.initState();
-  }
+//  @override
+//  void initState() {
+//    super.initState();
+//  }
 
   List<CheckListWidget> _tasks = [];
+  FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
 
   removeTask(CheckListWidget task) {
     setState(() {
@@ -31,7 +34,7 @@ class _HomePageState extends State<HomePage> {
         actions: [
           IconButton(
             icon: Icon(Icons.power_settings_new),
-            onPressed: () async {
+            onPressed: () {
 
             },
           )
@@ -43,7 +46,7 @@ class _HomePageState extends State<HomePage> {
           color: Colors.white,
         ),
         onPressed: (){
-          print('Added a new task');
+//          debugPrint('Added a new task');
           showDialog(
               context: context,
               builder: (context) {
@@ -71,13 +74,14 @@ class _HomePageState extends State<HomePage> {
                     ),
                     FlatButton(
                         child: Text('Add'),
-                        onPressed: () async {
+                        onPressed: () {
                         if(_textEditingController.text.length != 0) {
                           setState(() {
                             _tasks.add(
                               CheckListWidget(
                                 title: _textEditingController.text,
                                 onLongPress: (CheckListWidget task){
+                                  //onLongPress: Delete the task
                                   removeTask(task);
                                 }
                               ),
@@ -93,14 +97,43 @@ class _HomePageState extends State<HomePage> {
           );
         },
       ),
-      body: ListView.separated(
-        itemCount: _tasks.length,
-        itemBuilder: (context, index){
-          return _tasks[index];
-        },
-        separatorBuilder: (context, index) {
-          return Divider(
-            height: 2.0,
+      body: StreamBuilder<QuerySnapshot>(
+        stream: _firebaseFirestore.collection('tasks').snapshots(),
+        builder: (context, snapshot) {
+          if(!snapshot.hasData) {
+            return Center(
+              child: Container(
+                child: CircularProgressIndicator(),
+              ),
+            );
+          }
+
+          final taskListFromFirebase = snapshot.data.docs;
+          List<CheckListWidget> dataList = [];
+          for(var tasksData in taskListFromFirebase) {
+            var taskDetails = tasksData.data();
+            print(taskDetails);
+            dataList.add(
+              CheckListWidget(
+                  isDone: taskDetails['isDone'],
+                  title: taskDetails['title'],
+                  onLongPress: (CheckListWidget task){
+                    //onLongPress: Delete the task
+                    removeTask(task);
+                  }
+              ),
+            );
+          }
+          return ListView.separated(
+            itemCount: dataList.length,
+            itemBuilder: (context, index){
+              return dataList[index];
+            },
+            separatorBuilder: (context, index) {
+              return Divider(
+                height: 2.0,
+              );
+            },
           );
         },
       ),
@@ -109,14 +142,17 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
+
 class CheckListWidget extends StatefulWidget {
 
   final Function onLongPress;
   final String title;
+  final bool isDone;
 
   CheckListWidget({
     @required this.onLongPress,
     @required this.title,
+    @required this.isDone,
   });
 
   @override
@@ -128,9 +164,10 @@ class _CheckListWidgetState extends State<CheckListWidget> {
   @required
   void initState() {
     super.initState();
+    isChecked = widget.isDone;
   }
 
-  bool value = false;
+  bool isChecked;
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -138,23 +175,23 @@ class _CheckListWidgetState extends State<CheckListWidget> {
       child: Padding(
         padding: EdgeInsets.all(8.0),
         child: ListTile(
-          onLongPress: () async{
+          onLongPress: () {
             widget.onLongPress(widget);
             print('Delete');
           },
           title: Text(
             widget.title,
             style: TextStyle(
-              decoration: value ? TextDecoration.lineThrough : TextDecoration.none,
+              decoration: isChecked ? TextDecoration.lineThrough : TextDecoration.none,
             ),
           ),
           trailing: Checkbox(
-            onChanged: (bool value) async{
+            onChanged: (bool value){
               setState(() {
-                this.value = value;
+                this.isChecked = value;
               });
             },
-            value: value,
+            value: isChecked,
           ),
 
         ),
@@ -162,4 +199,5 @@ class _CheckListWidgetState extends State<CheckListWidget> {
     );
   }
 }
+
 
