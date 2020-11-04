@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterappfirebase/check_list_widget.dart';
+import 'package:flutterappfirebase/firebase_backend.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -74,19 +75,10 @@ class _HomePageState extends State<HomePage> {
                     ),
                     FlatButton(
                         child: Text('Add'),
-                        onPressed: () {
+                        onPressed: () async{
                         if(_textEditingController.text.length != 0) {
-                          setState(() {
-                            _tasks.add(
-                              CheckListWidget(
-                                title: _textEditingController.text,
-                                onLongPress: (CheckListWidget task){
-                                  //onLongPress: Delete the task
-                                  removeTask(task);
-                                }
-                              ),
-                            );
-                          });
+                          FirebaseBackend _firebaseBackend = FirebaseBackend();
+                          await _firebaseBackend.createTodoItem(_textEditingController.text);
                           Navigator.pop(context);
                         }
                       }
@@ -164,6 +156,8 @@ class _CheckListWidgetState extends State<CheckListWidget> {
   @required
   void initState() {
     super.initState();
+    print('----------------------');
+    print(widget.isDone);
     isChecked = widget.isDone;
   }
 

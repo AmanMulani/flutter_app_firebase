@@ -13,9 +13,9 @@ class FirebaseBackend {
 
   updateTodoItem(bool isDone, String uid) async{
     await _firebaseFirestore.collection('tasks').doc(uid).update(
-      {
-        'isDone': isDone,
-      }
+        {
+          'isDone': isDone,
+        }
     );
   }
 
