@@ -10,21 +10,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
 
-//  @override
-//  void initState() {
-//    super.initState();
-//  }
-
-  List<CheckListWidget> _tasks = [];
   FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
-
-  removeTask(CheckListWidget task) {
-    setState(() {
-      _tasks.remove(task);
-    });
-  }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +33,6 @@ class _HomePageState extends State<HomePage> {
           color: Colors.white,
         ),
         onPressed: (){
-//          debugPrint('Added a new task');
           showDialog(
               context: context,
               builder: (context) {
@@ -107,12 +92,9 @@ class _HomePageState extends State<HomePage> {
             print(taskDetails);
             dataList.add(
               CheckListWidget(
-                  isDone: taskDetails['isDone'],
-                  title: taskDetails['title'],
-                  onLongPress: (CheckListWidget task){
-                    //onLongPress: Delete the task
-                    removeTask(task);
-                  }
+                uid: tasksData.id,
+                isDone: taskDetails['isDone'],
+                title: taskDetails['title'],
               ),
             );
           }
@@ -128,67 +110,6 @@ class _HomePageState extends State<HomePage> {
             },
           );
         },
-      ),
-
-    );
-  }
-}
-
-
-class CheckListWidget extends StatefulWidget {
-
-  final Function onLongPress;
-  final String title;
-  final bool isDone;
-
-  CheckListWidget({
-    @required this.onLongPress,
-    @required this.title,
-    @required this.isDone,
-  });
-
-  @override
-  _CheckListWidgetState createState() => _CheckListWidgetState();
-}
-
-class _CheckListWidgetState extends State<CheckListWidget> {
-
-  @required
-  void initState() {
-    super.initState();
-    print('----------------------');
-    print(widget.isDone);
-    isChecked = widget.isDone;
-  }
-
-  bool isChecked;
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 3.0,
-      child: Padding(
-        padding: EdgeInsets.all(8.0),
-        child: ListTile(
-          onLongPress: () {
-            widget.onLongPress(widget);
-            print('Delete');
-          },
-          title: Text(
-            widget.title,
-            style: TextStyle(
-              decoration: isChecked ? TextDecoration.lineThrough : TextDecoration.none,
-            ),
-          ),
-          trailing: Checkbox(
-            onChanged: (bool value){
-              setState(() {
-                this.isChecked = value;
-              });
-            },
-            value: isChecked,
-          ),
-
-        ),
       ),
     );
   }

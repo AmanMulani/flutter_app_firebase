@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutterappfirebase/firebase_backend.dart';
 
 class CheckListWidget extends StatefulWidget {
 
-  final Function onLongPress;
+  final String uid;
   final String title;
+  final bool isDone;
 
   CheckListWidget({
-    @required this.onLongPress,
+    @required this.uid,
     @required this.title,
+    @required this.isDone,
   });
 
   @override
@@ -16,12 +19,14 @@ class CheckListWidget extends StatefulWidget {
 
 class _CheckListWidgetState extends State<CheckListWidget> {
 
-//  @required
-//  void initState() {
-//    super.initState();
-//  }
+  FirebaseBackend _firebaseBackend = FirebaseBackend();
+  @required
+  void initState() {
+    isChecked = widget.isDone;
+    super.initState();
+  }
 
-  bool isChecked = false;
+  bool isChecked;
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -30,7 +35,7 @@ class _CheckListWidgetState extends State<CheckListWidget> {
         padding: EdgeInsets.all(8.0),
         child: ListTile(
           onLongPress: () async{
-            widget.onLongPress(widget);
+            await _firebaseBackend.deleteTodoItem(widget.uid);
             print('Delete');
           },
           title: Text(
@@ -41,8 +46,9 @@ class _CheckListWidgetState extends State<CheckListWidget> {
           ),
           trailing: Checkbox(
             onChanged: (bool value) async{
+              await _firebaseBackend.updateTodoItem(value, widget.uid);
               setState(() {
-                this.isChecked = value;
+                isChecked = value;
               });
             },
             value: isChecked,
@@ -53,3 +59,5 @@ class _CheckListWidgetState extends State<CheckListWidget> {
     );
   }
 }
+
+
